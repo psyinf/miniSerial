@@ -2,7 +2,7 @@ include (cmake/setup_cpm.cmake)
 CPMAddPackage(
     NAME serial
     GITHUB_REPOSITORY "psyinf/serial"
-    GIT_TAG 2b17eb6110ec259a8894ab9b291ca2999d26649c
+    GIT_TAG 93f4b3303638f9682639e8199acd4659d6914907
 )
 CPMAddPackage(
     NAME fmt

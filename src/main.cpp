@@ -1,34 +1,68 @@
 #include <iostream>
 #include <serial/serial.h>
 #include <fmt/format.h>
+
+using namespace std;
+
+void serialReadToStandardOut(serial::Serial& serialPort)
+{
+    string message{};
+    serialPort.readline(message);
+    // TODO: maybe implement verbose version
+    cout << message << endl;
+}
+
 int main(int argc, char** argv)
 try
 {
-    constexpr auto port = "COM20";
+    /* definition */
+    constexpr auto port = "COM1"; // TODO: inmplement port detection
+    string         message{};
+    auto           serialPort = serial::Serial(port, 115200);
 
-    auto serialPort = serial::Serial(port, 9600);
+    /* beging user interaction */
+    cout << "Using Port: ";
+    cout << port << endl;
+
+    /* check for port*/
     if (!serialPort.isOpen()) { throw std::runtime_error(fmt::format("Port {} not open", port)); }
-    // for testing write
-    serialPort.write("Hello, World!");
-    // read one character
-    auto ret_buffer = std::vector<std::uint8_t>(1); // TODO: @Tim use std::byte for cstddef header if available
-    if (0 < serialPort.read(ret_buffer)) 
-    {
-        //interpret the received value as number of spam-bytes
-        //spam the receiver
-        for (auto i = static_cast<int>(ret_buffer.at(0)); i-- > 0;)
-        {
-            serialPort.write("Haha\n");
-        }
-    }
+
+    /* begin serial communication with cc*/
+    serialPort.write("\n");
+    serialReadToStandardOut(serialPort);
+
+    /* login cc*/
+    serialPort.write("root");
+    serialReadToStandardOut(serialPort);
+    serialPort.write("trumpf123");
+    serialReadToStandardOut(serialPort);
+
+    /* user interaction */
+    cout << "Please insert USB-device and press enter" << endl;
+    cin.ignore();
+
+    /* begin copy process from usb*/
+    serialPort.write("\n");
+    serialReadToStandardOut(serialPort);
+    serialPort.write("cp /media/usb/interfaces /etc/network/interfaces");
+    serialReadToStandardOut(serialPort);
+     serialPort.write("cp /media/usb/dnsmasq_eth0.conf /home/etc/");
+    serialReadToStandardOut(serialPort);
+   serialPort.write("cp /media/usb/dnsmasq_eth1.conf /home/etc/");
+    serialReadToStandardOut(serialPort);
+		serialPort.write("reboot");
+
+		//TODO: wait for reboot, detect finished boot
+		//
+		//TODO: ping 192.168.3.7 to check, if the issue is fixed
 
     return 0;
 }
-catch (const std::exception& e)
+catch (const exception& e)
 {
-    std::cerr << "Exception: " << e.what() << std::endl;
+    cerr << "Exception: " << e.what() << endl;
 }
 catch (...)
 {
-    std::cerr << " Unhandled unstructured Exception: " << std::endl;
+    cerr << " Unhandled unstructured Exception: " << endl;
 }
